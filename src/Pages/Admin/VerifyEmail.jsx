@@ -1,4 +1,8 @@
 import React, { useState } from 'react';
+import { useAuth } from '../../Context/AuthContext.jsx';
+import { useNavigate } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { Mail, Shield, Brain, Bot, Cpu, Zap, ArrowRight, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -6,6 +10,8 @@ function VerifyEmail() {
   const [formData, setFormData] = useState({
     email: ''
   });
+  const { requestResetPassword } = useAuth();
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -15,10 +21,13 @@ function VerifyEmail() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Email verification request:', formData);
-    // Add your email verification logic here
+    const res = await requestResetPassword(formData.email);
+    if (res.success && res.adminId) {
+      localStorage.setItem('resetAdminId', res.adminId);
+      navigate('/admin/otp');
+    }
   };
 
   return (
@@ -91,29 +100,28 @@ function VerifyEmail() {
                 </div>
 
                 {/* Email Field */}
-                <div className="space-y-2">
-                  <label className="flex items-center text-cyan-300 font-medium mb-2">
-                    <Mail className="w-5 h-5 mr-2" />
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className="w-full p-4 bg-gray-900/80 border border-cyan-500/30 rounded-xl text-white placeholder-gray-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:bg-gray-800/80"
-                    placeholder="Enter your registered email address..."
-                    required
-                  />
-                </div>
+                <form onSubmit={handleSubmit}>
+                  <div className="space-y-2">
+                    <label className="flex items-center text-cyan-300 font-medium mb-2">
+                      <Mail className="w-5 h-5 mr-2" />
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      className="w-full p-4 bg-gray-900/80 border border-cyan-500/30 rounded-xl text-white placeholder-gray-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:bg-gray-800/80"
+                      placeholder="Enter your registered email address..."
+                      required
+                    />
+                  </div>
 
 
                 {/* Verify Button */}
                 <div className="pt-6 text-center">
-                  <Link to="/admin/otp">
                   <button
-                    type="button"
-                    
+                    type="submit"
                     className="group relative inline-flex items-center px-12 py-4 bg-gradient-to-r from-cyan-600 via-purple-600 to-pink-600 text-white font-bold text-lg rounded-2xl shadow-2xl hover:shadow-purple-500/25 transform hover:scale-105 transition-all duration-300 overflow-hidden w-full justify-center"
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
@@ -121,8 +129,8 @@ function VerifyEmail() {
                     <span className="relative z-10">Verify Email</span>
                     <div className="absolute inset-0 border-2 border-transparent bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', maskComposite: 'xor'}}></div>
                   </button>
-                  </Link>
                 </div>
+                </form>
 
                 {/* Additional Info */}
                 <div className="bg-gray-900/30 rounded-xl p-4 border border-purple-500/20">
@@ -158,6 +166,7 @@ function VerifyEmail() {
           </div>
         </div>
       </div>
+    <ToastContainer />
     </div>
   );
 }

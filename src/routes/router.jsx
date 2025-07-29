@@ -1,4 +1,5 @@
 import { createBrowserRouter } from "react-router-dom";
+import ProtectedRoute from "../components/ProtectedRoute";
 import { Home } from "../Pages/Home/Home";
 import { Main } from "../Layout/Main";
 import AddAI from "../Pages/Admin/AddAI";
@@ -16,6 +17,7 @@ import NewAI from "../Pages/Home/NewAI";
 
 import AINews from "../Pages/Home/AINews";
 import FreeAI from "../Pages/Home/FreeAI";
+import SignUp from "../Pages/Admin/SignUp";
 
 // Refactored router with nested routes
 export const router = createBrowserRouter([
@@ -51,7 +53,7 @@ export const router = createBrowserRouter([
   },
   {
     path: "admin",
-    element: <AdminNavbar />, // AdminNavbar always shows for admin routes
+    element: <ProtectedRoute><AdminNavbar /></ProtectedRoute>, // AdminNavbar always shows for admin routes
     children: [
       {
         path: "dashboard",
@@ -66,7 +68,7 @@ export const router = createBrowserRouter([
         element: <AIList />,
       },
       {
-        path: "edit_ai",
+        path: "edit_ai/:id",
         element: <EditAI />,
       },
       {
@@ -79,6 +81,10 @@ export const router = createBrowserRouter([
       {
         path: "admin/login",
         element: <Login />,
+      },
+      {
+        path: "admin/signup",
+        element: <SignUp />,
       },
       {
         path: "admin/verify_email",

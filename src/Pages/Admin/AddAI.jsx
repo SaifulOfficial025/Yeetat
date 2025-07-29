@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useData } from "../../Context/DataContext";
+import { toast } from "react-toastify";
 import { Save, Upload, Target, CheckCircle, Zap, Brain, Cpu, Bot, Tag, X } from "lucide-react";
 
 function AddAI() {
@@ -14,6 +16,12 @@ function AddAI() {
     link: "",
     subscriptionType: "",
   });
+  const { categories, fetchCategories, createCategory } = useData();
+  // Fetch categories on mount
+  useEffect(() => {
+    fetchCategories();
+    // eslint-disable-next-line
+  }, []);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [categoryName, setCategoryName] = useState('');
@@ -28,25 +36,21 @@ function AddAI() {
   };
 
   const handleFileChange = (e) => {
+    const file = e.target.files[0];
     setFormData((prevData) => ({
       ...prevData,
-      logo: e.target.files[0],
+      logo: file,
     }));
   };
 
   const handleCategorySave = async () => {
     if (!categoryName.trim()) return;
-    
     setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      console.log('Saving category:', categoryName);
-      setIsLoading(false);
-      setCategoryName('');
-      setIsModalOpen(false);
-      // Here you would typically make an API call to save the category
-    }, 1000);
+    const res = await createCategory(categoryName);
+    setIsLoading(false);
+    setCategoryName('');
+    setIsModalOpen(false);
+    if (res && res.message) toast.info(res.message);
   };
 
   const handleClose = () => {
@@ -54,9 +58,56 @@ function AddAI() {
     setCategoryName('');
   };
 
-  const handleSubmit = () => {
-    console.log('Submitting form:', formData);
-    // Add your form submission logic here
+  const handleSubmit = async () => {
+    if (!formData.title || !formData.description || !formData.link || !formData.subscriptionType || !formData.category) {
+      toast.error("Please fill all required fields.");
+      return;
+    }
+
+    // Prepare FormData for file upload
+    const data = new FormData();
+    data.append("title", formData.title);
+    data.append("description", formData.description);
+    data.append("upvote", formData.upvote || "0");
+    data.append("isFeatured", formData.featured ? "true" : "false");
+    data.append("isTop", formData.top ? "true" : "false");
+    data.append("isVerified", formData.verified ? "true" : "false");
+    data.append("subscriptionType", formData.subscriptionType);
+    data.append("categoryId", formData.category);
+    data.append("url", formData.link);
+    if (formData.logo) {
+      data.append("logo", formData.logo);
+    }
+
+    try {
+      const res = await fetch("http://10.10.13.83:4000/ai/create", {
+        method: "POST",
+        body: data,
+      });
+      const result = await res.json();
+
+      if (res.ok) {
+        toast.success(result.message || "AI uploaded successfully.");
+        // Optionally reset form
+        setFormData({
+          upvote: "",
+          featured: false,
+          top: false,
+          logo: null,
+          title: "",
+          verified: false,
+          description: "",
+          category: "",
+          link: "",
+          subscriptionType: "",
+        });
+      } else {
+        toast.error(result.message || "Failed to upload AI. Please try again.");
+      }
+    } catch (err) {
+      toast.error("An unexpected error occurred. Please try again.");
+      console.error("Upload error:", err);
+    }
   };
 
   return (
@@ -181,6 +232,16 @@ function AddAI() {
                       Choose File
                     </div>
                   </div>
+                  {formData.logo && (
+                    <div className="mt-4 text-center">
+                      <p className="text-gray-300 text-sm mb-2">Selected Image:</p>
+                      <img
+                        src={URL.createObjectURL(formData.logo)}
+                        alt="Selected Logo"
+                        className="w-32 h-32 object-cover rounded-lg mx-auto"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -254,12 +315,9 @@ function AddAI() {
                     className="w-full p-4 bg-gray-900/80 border border-cyan-500/30 rounded-xl text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:bg-gray-800/80"
                   >
                     <option value="">Select AI Domain</option>
-                    <option value="Machine Learning">Machine Learning</option>
-                    <option value="Natural Language Processing">Natural Language Processing</option>
-                    <option value="Computer Vision">Computer Vision</option>
-                    <option value="Robotics">Robotics</option>
-                    <option value="Data Science">Data Science</option>
-                    <option value="Automation">Automation</option>
+                    {categories && categories.map(cat => (
+                      <option key={cat.categoryId || cat._id} value={cat.categoryId || cat._id}>{cat.title}</option>
+                    ))}
                   </select>
                   
                 </div>
@@ -276,10 +334,10 @@ function AddAI() {
                     className="w-full p-4 bg-gray-900/80 border border-yellow-500/30 rounded-xl text-white focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20 transition-all duration-300 hover:bg-gray-800/80"
                   >
                     <option value="">Select Access Level</option>
-                    <option value="Open Source">Open Source</option>
-                    <option value="Freemium">Freemium</option>
-                    <option value="Premium">Premium</option>
-                    <option value="Enterprise">Enterprise</option>
+                    {/* <option value="Open Source">Open Source</option> */}
+                    <option value="free">Free</option>
+                    <option value="freemium">Freemium</option>
+                    <option value="paid">Paid</option>
                   </select>
                 </div>
               </div>

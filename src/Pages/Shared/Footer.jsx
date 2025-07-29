@@ -37,7 +37,7 @@ export const Footer = () => {
   
   return (
     <footer className={`text-white ${isDarkMode ? 'bg-gray-950' : 'bg-slate-800'}`}>
-      <div className="max-w-7xl mx-auto px-6 py-12">
+      <div className="max-w-7xl mx-auto px-6 py-12 mt-10">
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-12">
           {/* Brand Section */}

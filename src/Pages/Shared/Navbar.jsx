@@ -24,6 +24,7 @@ export default function Navbar() {
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <header className={`sticky top-0 z-50 w-full border-b shadow-md hover:shadow-lg transition-shadow duration-300 ${
@@ -31,23 +32,23 @@ export default function Navbar() {
         ? 'bg-gray-900 border-gray-700 hover:shadow-gray-800' 
         : 'bg-white border-gray-200 hover:shadow-gray-200'
     }`}>
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <div className="flex items-center space-x-2">
             <img
               src="https://cdn-icons-png.flaticon.com/128/6281/6281567.png"
-              className="w-[50px] h-[50px]"
+              className="w-[40px] h-[40px] sm:w-[50px] sm:h-[50px]"
               alt="Logo"
             />
             <Link to="/">
-            <span className={`font-bold text-xl ${isDarkMode ? 'text-white' : 'text-black'}`}>AI-Capitol</span>
+              <span className={`font-bold text-lg sm:text-xl ${isDarkMode ? 'text-white' : 'text-black'}`}>AI-Capitol</span>
             </Link>
           </div>
 
           {/* Desktop Navigation */}
-          <div className="flex items-center space-x-8">
-            <div className="hidden md:flex items-center space-x-6">
+          <div className="hidden md:flex items-center space-x-8">
+            <div className="flex items-center space-x-6">
               {navItems.map((item) =>
                 !item.children ? (
                   <NavLink
@@ -121,7 +122,7 @@ export default function Navbar() {
             </div>
 
             {/* Right Icons */}
-            <div className="flex items-center gap-4 ms-10">
+            <div className="flex items-center gap-4 ms-6">
               <button className={`transition cursor-pointer ${
                 isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-black'
               }`}>
@@ -143,10 +144,13 @@ export default function Navbar() {
             </div>
           </div>
 
-          <div className="md:hidden">
-            <button className={`p-2 ${
-              isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-black'
-            }`}>
+          {/* Mobile Hamburger */}
+          <div className="md:hidden flex items-center">
+            <button
+              className={`p-2 ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-black'}`}
+              onClick={() => setMobileMenuOpen((open) => !open)}
+              aria-label="Open mobile menu"
+            >
               <svg
                 className="w-6 h-6"
                 fill="none"
@@ -166,74 +170,77 @@ export default function Navbar() {
       </div>
 
       {/* Mobile Navigation */}
-      <div className={`md:hidden border-t ${
-        isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'
-      }`}>
-        <div className="px-4 py-3 space-y-2">
-          {navItems.map((item) =>
-            !item.children ? (
-              <NavLink
-                key={item.name}
-                to={item.path}
-                className={({ isActive }) =>
-                  `block text-base font-medium px-3 py-2 rounded-md transition-colors ${
-                    isDarkMode
-                      ? isActive
-                        ? "text-white bg-gray-700"
-                        : "text-gray-300 hover:bg-gray-800 hover:text-white"
-                      : isActive
-                      ? "text-black bg-gray-100"
-                      : "text-gray-700 hover:bg-gray-50 hover:text-black"
-                  }`
-                }
-              >
-                {item.name}
-              </NavLink>
-            ) : (
-              <div key={item.name}>
-                <button
-                  className={`w-full text-left block text-base font-medium px-3 py-2 rounded-md transition-colors ${
-                    isDarkMode 
-                      ? 'text-gray-300 hover:bg-gray-800 hover:text-white' 
-                      : 'text-gray-700 hover:bg-gray-50 hover:text-black'
-                  }`}
-                  onClick={() => setMobileDropdownOpen((open) => !open)}
-                  type="button"
+      {mobileMenuOpen && (
+        <div className={`md:hidden border-t ${
+          isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'
+        }`}>
+          <div className="px-2 py-3 space-y-2">
+            {navItems.map((item) =>
+              !item.children ? (
+                <NavLink
+                  key={item.name}
+                  to={item.path}
+                  className={({ isActive }) =>
+                    `block text-base font-medium px-3 py-2 rounded-md transition-colors ${
+                      isDarkMode
+                        ? isActive
+                          ? "text-white bg-gray-700"
+                          : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                        : isActive
+                        ? "text-black bg-gray-100"
+                        : "text-gray-700 hover:bg-gray-50 hover:text-black"
+                    }`
+                  }
+                  onClick={() => setMobileMenuOpen(false)}
                 >
                   {item.name}
-                  <svg className="w-4 h-4 ml-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                {mobileDropdownOpen && (
-                  <div className="pl-4">
-                    {item.children.map((child) => (
-                      <NavLink
-                        key={child.name}
-                        to={child.path}
-                        className={({ isActive }) =>
-                          `block text-base font-medium px-3 py-2 rounded-md transition-colors ${
-                            isDarkMode
-                              ? isActive
-                                ? "text-white bg-gray-700"
-                                : "text-gray-300 hover:bg-gray-800 hover:text-white"
-                              : isActive
-                              ? "text-black bg-gray-100"
-                              : "text-gray-700 hover:bg-gray-50 hover:text-black"
-                          }`
-                        }
-                        onClick={() => setMobileDropdownOpen(false)}
-                      >
-                        {child.name}
-                      </NavLink>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )
-          )}
+                </NavLink>
+              ) : (
+                <div key={item.name}>
+                  <button
+                    className={`w-full text-left block text-base font-medium px-3 py-2 rounded-md transition-colors ${
+                      isDarkMode 
+                        ? 'text-gray-300 hover:bg-gray-800 hover:text-white' 
+                        : 'text-gray-700 hover:bg-gray-50 hover:text-black'
+                    }`}
+                    onClick={() => setMobileDropdownOpen((open) => !open)}
+                    type="button"
+                  >
+                    {item.name}
+                    <svg className="w-4 h-4 ml-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  {mobileDropdownOpen && (
+                    <div className="pl-4">
+                      {item.children.map((child) => (
+                        <NavLink
+                          key={child.name}
+                          to={child.path}
+                          className={({ isActive }) =>
+                            `block text-base font-medium px-3 py-2 rounded-md transition-colors ${
+                              isDarkMode
+                                ? isActive
+                                  ? "text-white bg-gray-700"
+                                  : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                                : isActive
+                                ? "text-black bg-gray-100"
+                                : "text-gray-700 hover:bg-gray-50 hover:text-black"
+                            }`
+                          }
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          {child.name}
+                        </NavLink>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </header>
   );
 }

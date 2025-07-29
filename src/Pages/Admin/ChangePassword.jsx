@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { Lock, Eye, EyeOff, Shield, Brain, Bot, Cpu, Zap, CheckCircle, AlertCircle, ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../Context/AuthContext.jsx';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function ChangePassword() {
   const [formData, setFormData] = useState({
@@ -9,6 +12,8 @@ function ChangePassword() {
   });
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const { resetPassword } = useAuth();
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -18,11 +23,17 @@ function ChangePassword() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (formData.newPassword === formData.confirmPassword && formData.newPassword.length >= 8) {
-      console.log('Password change request:', { newPassword: formData.newPassword });
-      // Add your password change logic here
+      const adminId = localStorage.getItem('resetAdminId');
+      if (adminId) {
+        const res = await resetPassword(formData.newPassword, parseInt(adminId));
+        if (res.success) {
+          localStorage.removeItem('resetAdminId'); // Clean up
+          navigate('/admin/login');
+        }
+      }
     }
   };
 
@@ -192,10 +203,9 @@ function ChangePassword() {
 
                 {/* Change Password Button */}
                 <div className="pt-6 text-center">
-                  <Link to="/admin/dashboard">
                   <button
-                    type="button"
-                    
+                    type="submit"
+                    onClick={handleSubmit}
                     disabled={!isFormValid}
                     className="group relative inline-flex items-center px-12 py-4 bg-gradient-to-r from-cyan-600 via-purple-600 to-pink-600 text-white font-bold text-lg rounded-2xl shadow-2xl hover:shadow-purple-500/25 transform hover:scale-105 transition-all duration-300 overflow-hidden w-full justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                   >
@@ -204,7 +214,6 @@ function ChangePassword() {
                     <span className="relative z-10">Update Password</span>
                     <div className="absolute inset-0 border-2 border-transparent bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', maskComposite: 'xor'}}></div>
                   </button>
-                  </Link>
                 </div>
 
                 {/* Security Notice */}
@@ -227,6 +236,7 @@ function ChangePassword() {
           </div>
         </div>
       </div>
+      <ToastContainer />
     </div>
   );
 }

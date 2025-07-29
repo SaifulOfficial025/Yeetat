@@ -1,11 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Shield, Brain, Bot, Cpu, Zap, ArrowRight, RefreshCw, Clock } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../Context/AuthContext.jsx';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function OTP() {
   const [otp, setOtp] = useState(['', '', '', '']);
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes in seconds
   const inputRefs = useRef([]);
+  const { verifyOtp } = useAuth();
+  const navigate = useNavigate();
 
   // Timer effect
   useEffect(() => {
@@ -42,12 +47,17 @@ function OTP() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const otpString = otp.join('');
     if (otpString.length === 4) {
-      console.log('OTP verification:', otpString);
-      // Add your OTP verification logic here
+      const adminId = localStorage.getItem('resetAdminId');
+      if (adminId) {
+        const res = await verifyOtp(otpString, parseInt(adminId));
+        if (res.success) {
+          navigate('/admin/change_password');
+        }
+      }
     }
   };
 
@@ -170,10 +180,9 @@ function OTP() {
 
                 {/* Verify Button */}
                 <div className="pt-6 text-center">
-                  <Link to="/admin/change_password">
                   <button
-                    type="button"
-                    
+                    type="submit"
+                    onClick={handleSubmit}
                     disabled={otp.some(digit => !digit) || timeLeft === 0}
                     className="group relative inline-flex items-center px-12 py-4 bg-gradient-to-r from-cyan-600 via-purple-600 to-pink-600 text-white font-bold text-lg rounded-2xl shadow-2xl hover:shadow-purple-500/25 transform hover:scale-105 transition-all duration-300 overflow-hidden w-full justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                   >
@@ -182,7 +191,6 @@ function OTP() {
                     <span className="relative z-10">Verify OTP</span>
                     <div className="absolute inset-0 border-2 border-transparent bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', maskComposite: 'xor'}}></div>
                   </button>
-                  </Link>
                 </div>
 
                 {/* Resend Section */}
@@ -218,6 +226,7 @@ function OTP() {
           </div>
         </div>
       </div>
+      <ToastContainer />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useEffect } from "react";
 import { MdVerified } from "react-icons/md";
 import {
   Search,
@@ -30,105 +31,17 @@ import {
 import { RiVerifiedBadgeFill } from "react-icons/ri";
 import { FaArrowAltCircleUp } from "react-icons/fa";
 import { useDarkMode } from "../../contexts/DarkModeContext";
+import { useData } from "../../Context/DataContext";
 
-const aiTools = [
-  {
-    id: 1,
-    name: "Mixus",
-    votes: 81,
-    featured: true,
-    isTop: true,
-    verified: true,
-    description:
-      "Deploy trusted AI agents with built-in human verification to avoid costly errors. Create, supervise and chain your agents across teams, keeping...",
-    logo: "https://iaperfecta.com/wp-content/uploads/2025/07/mixus-logo-primary-horizontal-black_enhanced-scaled.png",
-    category: "automation",
-  },
-  {
-    id: 2,
-    name: "Tripo Studio",
-    votes: 74,
-    featured: true,
-    verified: true,
-    description:
-      "Create high-quality 3D models from text or images in seconds with a professional studio. Ability to generate AI textures, animations,...",
-    logo: "https://registry.npmmirror.com/@lobehub/icons-static-png/latest/files/light/tripo-color.png",
-    category: "3d-modeling",
-  },
-  {
-    id: 3,
-    name: "ClickUp",
-    votes: 132,
-    featured: true,
-    verified: true,
-    description:
-      "A powerful all-in-one AI platform that brings teams, tasks and tools together in one place. Benefit from an AI assistant that automates...",
-    logo: "https://framerusercontent.com/images/LCqFQs37KHybRvrKuIIw4K4HL1o.png",
-    category: "productivity",
-  },
-  {
-    id: 4,
-    name: "Workleap",
-    votes: 51,
-    featured: true,
-    verified: true,
-    description:
-      "A complete HR platform that makes your employees' day-to-day work easier. Manage the performance, engagement and...",
-    logo: "https://media-s3-us-east-1.ceros.com/key-media/images/2024/04/10/f420da7f4e7b757745e8cca403fb7db4/workleap-logo-1080x1080.png",
-    category: "hr",
-  },
-  {
-    id: 5,
-    name: "AI SuitUp Team",
-    votes: 71,
-    featured: true,
-    verified: true,
-    description:
-      "Quickly create professional, consistent headshots for your entire team. Each member uploads 16 selfies and receives over 100 AI-...",
-    logo: "👔",
-    category: "image-generation",
-    isTop: true,
-  },
-  {
-    id: 6,
-    name: "Photoshop AI",
-    votes: 265,
-    featured: true,
-    verified: true,
-    description:
-      "Edit and transform your images like a pro with a set of AI tools: generative fill, generative expand, image creation from text and more.",
-    logo: "🎭",
-    category: "image-editing",
-  },
-  {
-    id: 7,
-    name: "Kling 2.1",
-    votes: 95,
-    featured: true,
-    verified: true,
-    description:
-      "Generate 2-minute HD videos from text with its high-definition video generator: realistic movements, natural rendering, overflowing...",
-    logo: "🎬",
-    category: "video-generation",
-  },
-  {
-    id: 8,
-    name: "HubSpot CRM",
-    votes: 325,
-    featured: true,
-    verified: true,
-    description:
-      "Optimize your sales and marketing with a particularly intuitive, AI-driven professional CRM. Track your performance in real time and...",
-    logo: "🚀",
-    category: "crm",
-  },
-];
+
 
 export default function Category() {
   const { isDarkMode } = useDarkMode();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [activeFilters, setActiveFilters] = useState([]);
+  const [sortOrder, setSortOrder] = useState("desc"); // 'asc' or 'desc'
+  const { ais, categories, fetchAIs, fetchCategories, loading } = useData();
 
   const toggleFilter = (filter) => {
     setActiveFilters((prev) =>
@@ -137,6 +50,63 @@ export default function Category() {
         : [...prev, filter]
     );
   };
+
+  useEffect(() => {
+    fetchAIs();
+    fetchCategories();
+    // eslint-disable-next-line
+  }, []);
+  // --- Filtering Logic ---
+  // Filter buttons
+  const filterOptions = [
+    { label: "Verified", value: "verified" },
+    { label: "Free AI", value: "Free AI" },
+    { label: "Freemium", value: "Freemium" },
+    { label: "Paid", value: "Paid" },
+  ];
+
+  // Handle filter button click
+  const handleFilterClick = (filter) => {
+    setActiveFilters((prev) =>
+      prev.includes(filter)
+        ? prev.filter((f) => f !== filter)
+        : [...prev, filter]
+    );
+  };
+
+  // Filtered and sorted AIs
+  const filteredAIs = ((ais || [])
+    .filter((tool) => {
+      // Search
+      if (searchQuery && !tool.title.toLowerCase().includes(searchQuery.toLowerCase()) && !tool.description?.toLowerCase().includes(searchQuery.toLowerCase())) {
+        return false;
+      }
+      // Category
+      if (selectedCategory) {
+        let catId = selectedCategory;
+        let match = false;
+        if (typeof tool.category === "object" && tool.category !== null) {
+          match = tool.category.categoryId === catId || tool.category._id === catId;
+        } else {
+          match = tool.categoryId === catId || tool.category === catId;
+        }
+        if (!match) return false;
+      }
+      // Filters
+      for (let filter of activeFilters) {
+        if (filter === "verified" && !tool.isVerified) return false;
+        if (filter === "Free AI" && tool.subscriptionType?.toLowerCase() !== "free") return false;
+        if (filter === "Freemium" && tool.subscriptionType?.toLowerCase() !== "freemium") return false;
+        if (filter === "Paid" && tool.subscriptionType?.toLowerCase() !== "paid") return false;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.updatedAt || a.createdAt || 0);
+      const dateB = new Date(b.updatedAt || b.createdAt || 0);
+      return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+    })
+  );
 
   return (
     <div className={`p-4 md:p-6 lg:p-8 ${isDarkMode ? 'bg-gray-900' : 'bg-sky-50/50'}`}>
@@ -155,7 +125,7 @@ export default function Category() {
             </div>
 
             <div className="flex gap-2">
-              {["𝕏", "f", "in", "✈", "✉"].map((icon, idx) => (
+              {['𝕏', 'f', 'in', '✈', '✉'].map((icon, idx) => (
                 <Button
                   key={idx}
                   variant="ghost"
@@ -168,60 +138,68 @@ export default function Category() {
             </div>
           </div>
 
-          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center ">
-              <Select
-                value={selectedCategory}
-                onValueChange={setSelectedCategory}
-              >
-                <SelectTrigger className="w-full sm:w-[200px] bg-gray-50 border-gray-300 hover:bg-gray-100 focus:bg-gray-200 shadow-sm">
-                  <SelectValue placeholder="-- Select a category --" />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-100">
-                  <SelectItem value="automation">Automation</SelectItem>
-                  <SelectItem value="3d-modeling">3D Modeling</SelectItem>
-                  <SelectItem value="productivity">Productivity</SelectItem>
-                  <SelectItem value="hr">HR</SelectItem>
-                  <SelectItem value="image-generation">
-                    Image Generation
-                  </SelectItem>
-                  <SelectItem value="image-editing">Image Editing</SelectItem>
-                  <SelectItem value="video-generation">
-                    Video Generation
-                  </SelectItem>
-                  <SelectItem value="crm">CRM</SelectItem>
-                </SelectContent>
-              </Select>
+        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center ">
+            <Select
+              value={selectedCategory}
+              onValueChange={setSelectedCategory}
+            >
+              <SelectTrigger className="w-full sm:w-[200px] bg-gray-50 border-gray-300 hover:bg-gray-100 focus:bg-gray-200 shadow-sm">
+                <SelectValue placeholder="-- Select a category --" />
+              </SelectTrigger>
+              <SelectContent className="bg-gray-100">
+                {(categories || []).map(cat => (
+                  <SelectItem key={cat.categoryId || cat._id} value={cat.categoryId || cat._id}>{cat.title}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-              <Button className="flex items-center cursor-pointer border border-gray-300 hover:bg-gray-100 space-x-2 shadow-sm">
-                <RiVerifiedBadgeFill className="text-yellow-500 w-5 h-5" />
-                Verified
-              </Button>
-            </div>
-
-            {/* Filter Tags */}
-            <div className="flex items-center space-x-3">
-              <Button className="border border-gray-300 drop-shadow-xs px-5 drop-shadow-green-500 bg-white rounded-[8px] text-[rgb(51,133,57)] cursor-pointer transition duration-300 hover:bg-[rgb(239,250,243)]">
-                Free AI
-              </Button>
-              <Button className="border border-gray-300 drop-shadow-xs px-5 drop-shadow-yellow-500 bg-white rounded-[8px] text-[#ad6301] cursor-pointer transition duration-300 hover:bg-[#fff8e7]">
-                Premium
-              </Button>
-              <Button className="border border-gray-300 drop-shadow-xs px-5 drop-shadow-red-300 bg-white rounded-[8px] text-[#c12020] cursor-pointer transition duration-300 hover:bg-[#fdeaea]">
-                Paid
-              </Button>
-              <Button className="border border-gray-300 drop-shadow-xs px-5 drop-shadow-purple-500 bg-white rounded-[8px] text-[#8f01ad] cursor-pointer transition duration-300 hover:bg-[#f6edff]">
-                Free Trial
-              </Button>
-            </div>
+            <Button
+              className={`flex items-center cursor-pointer border border-gray-300 hover:bg-gray-100 space-x-2 shadow-sm ${activeFilters.includes('verified') ? 'bg-yellow-100' : ''}`}
+              onClick={() => handleFilterClick('verified')}
+            >
+              <RiVerifiedBadgeFill className="text-yellow-500 w-5 h-5" />
+              Verified
+            </Button>
           </div>
+
+          {/* Filter Tags */}
+          <div className="flex items-center space-x-3">
+            {filterOptions.slice(1).map(opt => (
+              <Button
+                key={opt.value}
+                className={`border border-gray-300 drop-shadow-xs px-5 rounded-[8px] cursor-pointer transition duration-300 ${
+                  opt.value === 'Free AI' ? 'drop-shadow-green-500 bg-white text-[rgb(51,133,57)] hover:bg-[rgb(239,250,243)]' :
+                  opt.value === 'Freemium' ? 'drop-shadow-yellow-500 bg-white text-[#ad6301] hover:bg-[#fff8e7]' :
+                  opt.value === 'Paid' ? 'drop-shadow-red-300 bg-white text-[#c12020] hover:bg-[#fdeaea]' : ''
+                } ${activeFilters.includes(opt.value) ? 'bg-blue-100' : ''}`}
+                onClick={() => handleFilterClick(opt.value)}
+              >
+                {opt.label}
+              </Button>
+            ))}
+          </div>
+
+          {/* Sort Dropdown */}
+          <div className="flex items-center ml-2">
+            <Select value={sortOrder} onValueChange={setSortOrder}>
+              <SelectTrigger className="w-[160px] bg-gray-50 border-gray-300 hover:bg-gray-100 focus:bg-gray-200 shadow-sm">
+                <SelectValue placeholder="Sort by date" />
+              </SelectTrigger>
+              <SelectContent className="bg-gray-100">
+                <SelectItem value="desc">Newest First</SelectItem>
+                <SelectItem value="asc">Oldest First</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {aiTools.map((tool) => (
+          {filteredAIs.map((tool) => (
             <Card
-              key={tool.id}
-              className={`relative border hover:shadow-lg transition-shadow duration-200 ${
+              key={tool.aiId || tool._id}
+              className={`relative border hover:shadow-lg transition-shadow duration-200 flex flex-col h-full ${
                 isDarkMode 
                   ? 'bg-gray-800 border-gray-700 hover:shadow-gray-700' 
                   : 'bg-white border-gray-200'
@@ -246,12 +224,12 @@ export default function Category() {
                       }`}
                     >
                       <FaArrowAltCircleUp className={`h-4 w-4 ${isDarkMode ? 'text-white' : 'text-black'}`} />
-                      <span className="text-sm font-medium">{tool.votes}</span>
+                      <span className="text-sm font-medium">{tool.upvote ?? tool.votes ?? 0}</span>
                     </Button>
                   </div>
 
                   {/* Center: Featured Badge */}
-                  {tool.featured && (
+                  {tool.isFeatured && (
                     <div className="absolute left-1/2 -translate-x-1/2">
                       <Badge
                         variant="secondary"
@@ -264,7 +242,7 @@ export default function Category() {
                   )}
 
                   {/* Right: Verified Icons */}
-                  {tool.verified && (
+                  {tool.isVerified && (
                     <div className="flex gap-1 items-center">
                       <Crown className="h-4 w-4 text-yellow-500" />
                       <Award className="h-4 w-4 text-blue-500" />
@@ -273,27 +251,43 @@ export default function Category() {
                 </div>
 
                 <div className="flex justify-center">
-  <div className="flex items-center gap-3">
-    <img src={tool.logo} alt="" className="w-[25px]" />
-    <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-1">
-      {tool.name}
-      {tool.verified && (
-        <MdVerified  className="h-4 w-4 text-orange-500 -mt-3 -ml-1" />
-      )}
-    </CardTitle>
-  </div>
-</div>
-
+                  <div className="flex items-center gap-3">
+                    {tool.logo ? (
+                      <img src={tool.logo.startsWith('http') ? tool.logo : `http://10.10.13.83:4000/${tool.logo}`} alt="AI Logo" className="w-10 h-10 rounded object-cover" />
+                    ) : (
+                      <div className="w-10 h-10 rounded bg-gray-200 flex items-center justify-center text-xs text-gray-500">No Image</div>
+                    )}
+                    <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-1">
+                      {tool.title}
+                      {tool.isVerified && (
+                        <MdVerified  className="h-4 w-4 text-orange-500 -mt-3 -ml-1" />
+                      )}
+                    </CardTitle>
+                  </div>
+                </div>
               </CardHeader>
 
-              <CardContent className="pt-0">
+              <CardContent className="pt-0 flex flex-col flex-1">
                 <CardDescription className="text-sm text-gray-600 mb-4 line-clamp-3">
                   {tool.description}
                 </CardDescription>
-
-                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  VISIT
+                <div className="flex flex-wrap gap-2 mb-2">
+                  <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs">{tool.subscriptionType}</span>
+                  {tool.category && (
+                    <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs">
+                      {typeof tool.category === 'object' && tool.category !== null ? tool.category.title : tool.categoryId}
+                    </span>
+                  )}
+                  {tool.isVerified && (
+                      <span className="ml-2 px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-semibold">Verified</span>
+                    )}
+                </div>
+                <div className="flex-1" />
+                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-auto" asChild>
+                  <a href={tool.url || tool.link || '#'} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    VISIT
+                  </a>
                 </Button>
               </CardContent>
             </Card>

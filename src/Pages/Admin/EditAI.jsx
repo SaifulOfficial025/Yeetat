@@ -1,7 +1,13 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { useData } from "../../Context/DataContext";
 import { Save, Upload, Target, CheckCircle, Zap, Brain, Cpu, Bot, Tag, X } from "lucide-react";
 
 function EditAI() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { categories, fetchCategories, createCategory } = useData();
   const [formData, setFormData] = useState({
     upvote: "",
     featured: false,
@@ -14,10 +20,56 @@ function EditAI() {
     link: "",
     subscriptionType: "",
   });
-
+  const [currentLogo, setCurrentLogo] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [categoryName, setCategoryName] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSavingCategory, setIsSavingCategory] = useState(false);
+
+  useEffect(() => {
+    fetchCategories();
+    // eslint-disable-next-line
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    setLoading(true);
+    fetch(`http://10.10.13.83:4000/ai`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!isMounted) return;
+        if (data.status === 200) {
+          const ai = data.data.ais.find((item) => String(item.aiId) === String(id));
+          if (ai) {
+            setFormData({
+              upvote: ai.upvote || "",
+              featured: ai.isFeatured || false,
+              top: ai.isTop || false,
+              logo: null,
+              title: ai.title || "",
+              verified: ai.isVerified || false,
+              description: ai.description || "",
+              category: ai.categoryId || (ai.category && ai.category.categoryId) || "",
+              link: ai.url || "",
+              subscriptionType: ai.subscriptionType || "",
+            });
+            setCurrentLogo(ai.logo || null);
+          } else {
+            toast.error("AI not found.");
+            navigate("/admin/ai_list");
+          }
+        } else {
+          toast.error(data.message || "Failed to fetch AI data.");
+        }
+        setLoading(false);
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        toast.error("Error fetching AI data.");
+        setLoading(false);
+      });
+    return () => { isMounted = false; };
+  }, [id, navigate]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -36,17 +88,12 @@ function EditAI() {
 
   const handleCategorySave = async () => {
     if (!categoryName.trim()) return;
-    
-    setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      console.log('Saving category:', categoryName);
-      setIsLoading(false);
-      setCategoryName('');
-      setIsModalOpen(false);
-      // Here you would typically make an API call to save the category
-    }, 1000);
+    setIsSavingCategory(true);
+    const res = await createCategory(categoryName);
+    setIsSavingCategory(false);
+    setCategoryName('');
+    setIsModalOpen(false);
+    if (res && res.message) toast.info(res.message);
   };
 
   const handleClose = () => {
@@ -54,10 +101,48 @@ function EditAI() {
     setCategoryName('');
   };
 
-  const handleSubmit = () => {
-    console.log('Submitting form:', formData);
-    // Add your form submission logic here
+  const handleSubmit = async () => {
+    if (!formData.title || !formData.description || !formData.link || !formData.subscriptionType || !formData.category) {
+      toast.error("Please fill all required fields.");
+      return;
+    }
+
+    // Prepare FormData for file upload
+    const data = new FormData();
+    data.append("title", formData.title);
+    data.append("description", formData.description);
+    data.append("upvote", formData.upvote || "0");
+    data.append("isFeatured", formData.featured ? "true" : "false");
+    data.append("isTop", formData.top ? "true" : "false");
+    data.append("isVerified", formData.verified ? "true" : "false");
+    data.append("subscriptionType", formData.subscriptionType);
+    data.append("categoryId", formData.category);
+    data.append("url", formData.link);
+    if (formData.logo) {
+      data.append("logo", formData.logo);
+    }
+
+    try {
+      const res = await fetch(`http://10.10.13.83:4000/ai/update/${id}`, {
+        method: "PUT",
+        body: data,
+      });
+      const result = await res.json();
+
+      if (res.ok) {
+        toast.success(result.message || "AI updated successfully.");
+        navigate("/admin/ai_list");
+      } else {
+        toast.error(result.message || "Failed to update AI. Please try again.");
+      }
+    } catch (err) {
+      console.error("Upload error:", err);
+      toast.error("An unexpected error occurred. Please try again.");
+    }
   };
+
+  if (loading) return <div className="text-center p-10 text-white">Loading...</div>;
+  if (!formData) return null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
@@ -90,10 +175,10 @@ function EditAI() {
             <Cpu className="w-16 h-16 text-pink-400 ml-4 animate-pulse" />
           </div>
           <h1 className="text-6xl font-bold bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-4">
-            AI: Capitol
+            Edit AI: Capitol
           </h1>
           <h2 className="text-2xl text-gray-300 font-light tracking-wide">
-            Edit Your AI • Amplify the Future
+            Update Your AI • Amplify the Future
           </h2>
           <div className="w-32 h-1 bg-gradient-to-r from-cyan-400 to-purple-400 mx-auto mt-4 rounded-full"></div>
         </div>
@@ -105,10 +190,10 @@ function EditAI() {
               <div className="text-center pb-6 border-b border-gray-700/50">
                 <div className="flex justify-center items-center space-x-2 mb-2">
                   <Zap className="w-6 h-6 text-yellow-400 animate-pulse" />
-                  <span className="text-xl font-semibold text-white">AI Configuration Panel</span>
+                  <span className="text-xl font-semibold text-white">AI Edit Panel</span>
                   <Zap className="w-6 h-6 text-yellow-400 animate-pulse" />
                 </div>
-                <p className="text-gray-400 text-sm">Initialize your AI tool parameters</p>
+                <p className="text-gray-400 text-sm">Update your AI tool parameters</p>
               </div>
 
               {/* Intelligence Metrics */}
@@ -125,6 +210,7 @@ function EditAI() {
                     onChange={handleChange}
                     className="w-full p-4 bg-gray-900/80 border border-cyan-500/30 rounded-xl text-white placeholder-gray-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:bg-gray-800/80"
                     placeholder="0"
+                    required
                   />
                 </div>
 
@@ -135,7 +221,7 @@ function EditAI() {
                       <input
                         type="checkbox"
                         name="featured"
-                        checked={formData.featured}
+                        checked={!!formData.featured}
                         onChange={handleChange}
                         className="sr-only peer"
                       />
@@ -149,37 +235,12 @@ function EditAI() {
                       <input
                         type="checkbox"
                         name="top"
-                        checked={formData.top}
+                        checked={!!formData.top}
                         onChange={handleChange}
                         className="sr-only peer"
                       />
                       <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all duration-300 peer-checked:bg-pink-500"></div>
                     </label>
-                  </div>
-                </div>
-              </div>
-
-              {/* Logo Upload */}
-              <div className="space-y-2">
-                <label className="flex items-center text-cyan-300 font-medium mb-3">
-                  <Upload className="w-5 h-5 mr-2" />
-                  AI Icon
-                </label>
-                <div className="relative border-2 border-dashed border-cyan-500/40 rounded-xl p-8 bg-gradient-to-r from-cyan-900/20 to-purple-900/20 hover:border-cyan-400/60 transition-all duration-300 group">
-                  <div className="text-center">
-                    <Upload className="w-16 h-16 text-cyan-400 mx-auto mb-4 group-hover:scale-110 transition-transform duration-300" />
-                    <p className="text-gray-300 mb-2">Upload your AI's visual signature</p>
-                    <p className="text-gray-500 text-sm mb-4">PNG, JPG, SVG up to 10MB</p>
-                    <input
-                      type="file"
-                      name="logo"
-                      onChange={handleFileChange}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      accept="image/*"
-                    />
-                    <div className="inline-flex items-center px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg transition-colors duration-300">
-                      Choose File
-                    </div>
                   </div>
                 </div>
               </div>
@@ -198,6 +259,7 @@ function EditAI() {
                     onChange={handleChange}
                     className="w-full p-4 bg-gray-900/80 border border-purple-500/30 rounded-xl text-white placeholder-gray-500 focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 transition-all duration-300 hover:bg-gray-800/80"
                     placeholder="Enter AI tool name..."
+                    required
                   />
                 </div>
 
@@ -210,7 +272,7 @@ function EditAI() {
                     <input
                       type="checkbox"
                       name="verified"
-                      checked={formData.verified}
+                      checked={!!formData.verified}
                       onChange={handleChange}
                       className="sr-only peer"
                     />
@@ -232,6 +294,7 @@ function EditAI() {
                   rows={4}
                   className="w-full p-4 bg-gray-900/80 border border-pink-500/30 rounded-xl text-white placeholder-gray-500 focus:border-pink-400 focus:ring-2 focus:ring-pink-400/20 transition-all duration-300 hover:bg-gray-800/80 resize-none"
                   placeholder="Describe your AI's capabilities, training, and unique features..."
+                  required
                 />
               </div>
 
@@ -240,28 +303,28 @@ function EditAI() {
                 <div className="space-y-2">
                   <label className="flex items-center text-cyan-300 font-medium mb-2">
                     <Cpu className="w-5 h-5 mr-2" />
-                    AI Category <span 
-        onClick={() => setIsModalOpen(true)}
-        className="ml-5 text-orange-500 cursor-pointer hover:text-orange-400 transition-colors duration-200 hover:underline"
-      >
-        (Add Category?)
-      </span>
+                    AI Category
                   </label>
                   <select
                     name="category"
                     value={formData.category}
                     onChange={handleChange}
                     className="w-full p-4 bg-gray-900/80 border border-cyan-500/30 rounded-xl text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:bg-gray-800/80"
+                    required
                   >
                     <option value="">Select AI Domain</option>
-                    <option value="Machine Learning">Machine Learning</option>
-                    <option value="Natural Language Processing">Natural Language Processing</option>
-                    <option value="Computer Vision">Computer Vision</option>
-                    <option value="Robotics">Robotics</option>
-                    <option value="Data Science">Data Science</option>
-                    <option value="Automation">Automation</option>
+                    {categories && categories.map(cat => (
+                      <option key={cat.categoryId || cat._id} value={cat.categoryId || cat._id}>{cat.title}</option>
+                    ))}
                   </select>
-                  
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(true)}
+                    className="mt-2 w-full p-2 bg-cyan-600/20 border border-cyan-500/50 rounded-lg text-cyan-300 hover:bg-cyan-600/30 transition-all duration-300 text-sm flex items-center justify-center space-x-2"
+                  >
+                    <Tag className="w-4 h-4" />
+                    <span>Add New Category</span>
+                  </button>
                 </div>
 
                 <div className="space-y-2">
@@ -274,12 +337,15 @@ function EditAI() {
                     value={formData.subscriptionType}
                     onChange={handleChange}
                     className="w-full p-4 bg-gray-900/80 border border-yellow-500/30 rounded-xl text-white focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20 transition-all duration-300 hover:bg-gray-800/80"
+                    required
                   >
                     <option value="">Select Access Level</option>
-                    <option value="Open Source">Open Source</option>
-                    <option value="Freemium">Freemium</option>
-                    <option value="Premium">Premium</option>
-                    <option value="Enterprise">Enterprise</option>
+                   
+                    <option value="freemium">Freemium</option>
+     
+            
+                    <option value="paid">Paid</option>
+                    <option value="free">Free</option>
                   </select>
                 </div>
               </div>
@@ -297,7 +363,58 @@ function EditAI() {
                   onChange={handleChange}
                   className="w-full p-4 bg-gray-900/80 border border-green-500/30 rounded-xl text-white placeholder-gray-500 focus:border-green-400 focus:ring-2 focus:ring-green-400/20 transition-all duration-300 hover:bg-gray-800/80"
                   placeholder="https://your-ai-tool.com"
+                  required
                 />
+              </div>
+
+              {/* Logo Upload Section */}
+              <div className="space-y-4">
+               
+                
+                {/* Current Logo Display */}
+                {currentLogo && (
+                  <div className="mb-4">
+                    <p className="text-gray-400 text-sm mb-2">Current Logo:</p>
+                    <div className="relative inline-block">
+                      <img 
+                        src={currentLogo && currentLogo.startsWith('http') ? currentLogo : `http://10.10.13.83:4000/${currentLogo}`}
+                        alt="Current AI Logo" 
+                        className="w-20 h-20 object-cover rounded-xl border-2 border-indigo-500/30"
+                      />
+                    </div>
+                  </div>
+                )}
+                
+                {/* Photo Preview */}
+                {formData.logo && (
+                  <div className="mb-4">
+                    <p className="text-gray-400 text-sm mb-2">New Logo Preview:</p>
+                    <div className="relative inline-block">
+                      <img 
+                        src={URL.createObjectURL(formData.logo)} 
+                        alt="Logo Preview" 
+                        className="w-20 h-20 object-cover rounded-xl border-2 border-green-500/50"
+                      />
+                    </div>
+                  </div>
+                )}
+                
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                  />
+                  <div className="w-full p-4 bg-gray-900/80 border border-indigo-500/30 rounded-xl text-white hover:bg-gray-800/80 transition-all duration-300 cursor-pointer">
+                    <div className="flex items-center justify-center space-x-3">
+                      <Upload className="w-5 h-5 text-indigo-400" />
+                      <span className="text-gray-300">
+                        {formData.logo ? 'Change Logo' : 'Upload New Logo'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Submit Button */}
@@ -305,11 +422,12 @@ function EditAI() {
                 <button
                   type="button"
                   onClick={handleSubmit}
-                  className="group relative inline-flex items-center px-12 py-4 bg-gradient-to-r from-cyan-600 via-purple-600 to-pink-600 text-white font-bold text-lg rounded-2xl shadow-2xl hover:shadow-purple-500/25 transform hover:scale-105 transition-all duration-300 overflow-hidden"
+                  disabled={loading}
+                  className="group relative inline-flex items-center px-12 py-4 bg-gradient-to-r from-cyan-600 via-purple-600 to-pink-600 text-white font-bold text-lg rounded-2xl shadow-2xl hover:shadow-purple-500/25 transform hover:scale-105 transition-all duration-300 overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
                   <Save className="w-6 h-6 mr-3 group-hover:rotate-12 transition-transform duration-300" />
-                  <span className="relative z-10">Upload AI </span>
+                  <span className="relative z-10">{loading ? 'Updating...' : 'Update AI'}</span>
                   <div className="absolute inset-0 border-2 border-transparent bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', maskComposite: 'xor'}}></div>
                 </button>
               </div>
@@ -318,7 +436,7 @@ function EditAI() {
         </div>
       </div>
 
-     {/* Modal Overlay */}
+      {/* Modal Overlay */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           {/* Backdrop */}
@@ -385,10 +503,10 @@ function EditAI() {
                   
                   <button
                     onClick={handleCategorySave}
-                    disabled={!categoryName.trim() || isLoading}
+                    disabled={!categoryName.trim() || isSavingCategory}
                     className="flex-1 flex items-center justify-center px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-medium hover:from-orange-400 hover:to-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-orange-500/25 transform hover:scale-105 disabled:hover:scale-100"
                   >
-                    {isLoading ? (
+                    {isSavingCategory ? (
                       <>
                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
                         Saving...

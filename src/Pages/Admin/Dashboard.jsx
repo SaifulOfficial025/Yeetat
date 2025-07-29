@@ -1,19 +1,27 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Brain, Bot, Cpu, Zap, Gift, Crown, CreditCard, Clock } from "lucide-react";
+import { useData } from "../../Context/DataContext";
 
 function Dashboard() {
-  const stats = [
+  const { stats, fetchStats } = useData();
+
+  useEffect(() => {
+    fetchStats && fetchStats();
+    // eslint-disable-next-line
+  }, []);
+
+  const statConfig = [
     {
       title: "Free AI",
-      count: "2,847",
+      key: "free",
       icon: Gift,
       color: "from-green-500 to-emerald-600",
       borderColor: "border-green-500/30",
       iconColor: "text-green-400"
     },
     {
-      title: "Premium",
-      count: "1,234",
+      title: "Freemium",
+      key: "freemium",
       icon: Crown,
       color: "from-purple-500 to-violet-600",
       borderColor: "border-purple-500/30",
@@ -21,15 +29,15 @@ function Dashboard() {
     },
     {
       title: "Paid",
-      count: "892",
+      key: "paid",
       icon: CreditCard,
       color: "from-blue-500 to-cyan-600",
       borderColor: "border-blue-500/30",
       iconColor: "text-blue-400"
     },
     {
-      title: "Free Trial",
-      count: "567",
+      title: "Total",
+      key: "total",
       icon: Clock,
       color: "from-orange-500 to-amber-600",
       borderColor: "border-orange-500/30",
@@ -83,7 +91,7 @@ function Dashboard() {
             <div className="text-center">
               <div className="flex justify-center items-center space-x-2 mb-4">
                 <Zap className="w-8 h-8 text-yellow-400 animate-pulse" />
-                <span className="text-3xl font-bold text-white">Welcome Back</span>
+                <span className="text-3xl font-bold text-white">Welcome</span>
                 <Zap className="w-8 h-8 text-yellow-400 animate-pulse" />
               </div>
               <p className="text-xl text-gray-300 leading-relaxed">
@@ -97,8 +105,9 @@ function Dashboard() {
         {/* Stats Grid */}
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {stats.map((stat, index) => {
+            {statConfig.map((stat, index) => {
               const IconComponent = stat.icon;
+              const count = stats && stats[stat.key] !== undefined ? stats[stat.key] : 0;
               return (
                 <div
                   key={index}
@@ -108,7 +117,7 @@ function Dashboard() {
                     <div className={`p-4 rounded-xl bg-gradient-to-r ${stat.color} bg-opacity-20 mx-auto mb-4 w-fit`}>
                       <IconComponent className={`w-10 h-10 ${stat.iconColor} group-hover:animate-pulse`} />
                     </div>
-                    <div className="text-4xl font-bold text-white mb-2">{stat.count}</div>
+                    <div className="text-4xl font-bold text-white mb-2">{count}</div>
                     <div className={`text-lg font-medium ${stat.iconColor}`}>{stat.title}</div>
                   </div>
                 </div>
@@ -126,11 +135,7 @@ function Dashboard() {
                   <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
                   <span className="text-sm">System Online</span>
                 </div>
-                <div className="w-1 h-4 bg-gray-600"></div>
-                <div className="flex items-center space-x-2">
-                  <Brain className="w-4 h-4 text-purple-400" />
-                  <span className="text-sm">AI Models: 5,540 Active</span>
-                </div>
+                
 
 
               </div>

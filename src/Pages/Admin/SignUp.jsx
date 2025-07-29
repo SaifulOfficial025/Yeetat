@@ -3,18 +3,23 @@ import { useAuth } from '../../Context/AuthContext.jsx';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Mail, Lock, Eye, EyeOff, Brain, Bot, Cpu, Zap, ArrowRight, Shield, Target } from 'lucide-react';
+import { MdOutlinePeopleAlt } from "react-icons/md";
 import { Link } from 'react-router-dom';
 
 import { useNavigate } from 'react-router-dom';
 
-function Login() {
+
+function SignUp() {
   const [formData, setFormData] = useState({
+    name: '',
     email: '',
     password: '',
+    confirmPassword: '',
     rememberMe: false
   });
   const [showPassword, setShowPassword] = useState(false);
-  const { login } = useAuth();
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const { signup } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -27,7 +32,21 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const res = await login(formData.email, formData.password);
+    // Strong password validation: min 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special char
+    const strongPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
+    if (!strongPassword.test(formData.password)) {
+      import('react-toastify').then(({ toast }) => {
+        toast.error('Password must be at least 8 characters and include uppercase, lowercase, number, and special character.');
+      });
+      return;
+    }
+    if (formData.password !== formData.confirmPassword) {
+      import('react-toastify').then(({ toast }) => {
+        toast.error('Passwords do not match!');
+      });
+      return;
+    }
+    const res = await signup(formData.name, formData.email, formData.password);
     if (res.success) {
       navigate('/admin/dashboard');
     }
@@ -92,6 +111,28 @@ function Login() {
                   <p className="text-gray-400 text-sm">Authenticate your credentials</p>
                 </div>
 
+
+
+                {/* Name Field */}
+                <div className="space-y-2">
+                  <label className="flex items-center text-orange-500 font-medium mb-2">
+                    <MdOutlinePeopleAlt  className="w-5 h-5 mr-2" />
+                    Name
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    className="w-full p-4 bg-gray-900/80 border border-cyan-500/30 rounded-xl text-white placeholder-gray-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:bg-gray-800/80"
+                    placeholder="Enter your name..."
+                    required
+                  />
+                </div>
+
+
+
+
                 {/* Email Field */}
                 <div className="space-y-2">
                   <label className="flex items-center text-cyan-300 font-medium mb-2">
@@ -135,6 +176,32 @@ function Login() {
                   </div>
                 </div>
 
+                {/* Confirm Password Field */}
+                <div className="space-y-2">
+                  <label className="flex items-center text-pink-300 font-medium mb-2">
+                    <Lock className="w-5 h-5 mr-2" />
+                    Confirm Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      className="w-full p-4 pr-12 bg-gray-900/80 border border-pink-500/30 rounded-xl text-white placeholder-gray-500 focus:border-pink-400 focus:ring-2 focus:ring-pink-400/20 transition-all duration-300 hover:bg-gray-800/80"
+                      placeholder="Confirm your password..."
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword((prev) => !prev)}
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-pink-400/60 hover:text-pink-400 transition-colors duration-200"
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                </div>
+
 
                 {/* Login Button */}
                 
@@ -159,10 +226,10 @@ function Login() {
                   <div className="space-y-2">
                   
                     <p className="text-gray-500 text-xs">
-                      Forgot Password?{' '}
-                      <Link to="/admin/verify_email">
+                      
+                      <Link to="/admin/login">
                       <button className="text-purple-400 hover:text-purple-300 transition-colors duration-200">
-                        Reset Here
+                        Login Here
                       </button>
                       </Link>
                     </p>
@@ -179,4 +246,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default SignUp;

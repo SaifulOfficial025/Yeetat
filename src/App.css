@@ -1,3 +1,18 @@
+/* Carousel Slide Animations */
+.animate-slide-right {
+  animation: slideRight 0.5s forwards;
+}
+.animate-slide-left {
+  animation: slideLeft 0.5s forwards;
+}
+@keyframes slideRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes slideLeft {
+  from { transform: translateX(-100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
 #root {
   max-width: 1280px;
   margin: 0 auto;

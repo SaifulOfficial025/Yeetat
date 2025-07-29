@@ -193,20 +193,7 @@ function OTP() {
                   </button>
                 </div>
 
-                {/* Resend Section */}
-                <div className="bg-gray-900/30 rounded-xl p-4 border border-yellow-500/20">
-                  <div className="text-center">
-                    <p className="text-gray-400 text-sm mb-3">Didn't receive the code?</p>
-                    <button
-                      onClick={handleResend}
-                      disabled={timeLeft > 0}
-                      className="inline-flex items-center px-6 py-2 bg-yellow-600/20 border border-yellow-500/30 rounded-lg text-yellow-300 hover:bg-yellow-600/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <RefreshCw className="w-4 h-4 mr-2" />
-                      {timeLeft > 0 ? 'Resend Available Soon' : 'Resend Code'}
-                    </button>
-                  </div>
-                </div>
+
 
                 {/* Footer Links */}
                 <div className="text-center space-y-3 pt-4 border-t border-gray-700/30">

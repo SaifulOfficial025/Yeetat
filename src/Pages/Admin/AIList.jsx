@@ -72,7 +72,7 @@ function AIList() {
     if (!window.confirm("Are you sure you want to delete this AI?")) return;
     try {
       const res = await fetch(
-        `http://10.10.13.83:4000/ai/delete/${ai.aiId || ai.id || ai._id}`,
+        `https://ai-capitol-server.onrender.com/ai/delete/${ai.aiId || ai.id || ai._id}`,
         {
           method: "DELETE",
         }
@@ -147,7 +147,7 @@ function AIList() {
                 <div className="flex items-center space-x-4">
                   {viewedAI.logo ? (
                     <img
-                      src={`http://10.10.13.83:4000/${viewedAI.logo}`}
+                      src={`https://ai-capitol-server.onrender.com/${viewedAI.logo}`}
                       alt="AI Logo"
                       className="w-10 h-10 rounded-xl object-cover border border-cyan-400/30 bg-gray-800"
                       onError={(e) => {
@@ -393,7 +393,7 @@ function AIList() {
                                 src={
                                   ai.logo.startsWith("http")
                                     ? ai.logo
-                                    : `http://10.10.13.83:4000/${ai.logo}`
+                                    : `https://ai-capitol-server.onrender.com/${ai.logo}`
                                 }
                                 alt="AI Logo"
                                 className="w-10 h-10 rounded-lg object-cover border border-cyan-400/30 bg-gray-800"

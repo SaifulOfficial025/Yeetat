@@ -80,7 +80,7 @@ function AddAI() {
     }
 
     try {
-      const res = await fetch("http://10.10.13.83:4000/ai/create", {
+      const res = await fetch("https://ai-capitol-server.onrender.com/ai/create", {
         method: "POST",
         body: data,
       });

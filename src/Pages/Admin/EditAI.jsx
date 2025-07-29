@@ -34,7 +34,7 @@ function EditAI() {
   useEffect(() => {
     let isMounted = true;
     setLoading(true);
-    fetch(`http://10.10.13.83:4000/ai`)
+    fetch(`https://ai-capitol-server.onrender.com/ai`)
       .then((res) => res.json())
       .then((data) => {
         if (!isMounted) return;
@@ -123,7 +123,7 @@ function EditAI() {
     }
 
     try {
-      const res = await fetch(`http://10.10.13.83:4000/ai/update/${id}`, {
+      const res = await fetch(`https://ai-capitol-server.onrender.com/ai/update/${id}`, {
         method: "PUT",
         body: data,
       });
@@ -377,7 +377,7 @@ function EditAI() {
                     <p className="text-gray-400 text-sm mb-2">Current Logo:</p>
                     <div className="relative inline-block">
                       <img 
-                        src={currentLogo && currentLogo.startsWith('http') ? currentLogo : `http://10.10.13.83:4000/${currentLogo}`}
+                        src={currentLogo && currentLogo.startsWith('http') ? currentLogo : `https://ai-capitol-server.onrender.com/${currentLogo}`}
                         alt="Current AI Logo" 
                         className="w-20 h-20 object-cover rounded-xl border-2 border-indigo-500/30"
                       />

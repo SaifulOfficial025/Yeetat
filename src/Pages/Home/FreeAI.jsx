@@ -119,7 +119,7 @@ function FreeAI() {
       <div className="flex items-center gap-3">
         {tool.logo ? (
           <img
-            src={tool.logo.startsWith('http') ? tool.logo : `http://10.10.13.83:4000/${tool.logo}`}
+            src={tool.logo.startsWith('http') ? tool.logo : `https://ai-capitol-server.onrender.com/${tool.logo}`}
             alt="AI Logo"
             className="w-10 h-10 rounded object-cover"
           />

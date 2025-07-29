@@ -11,7 +11,7 @@ export const DataProvider = ({ children }) => {
   // Fetch stats
   const fetchStats = async () => {
     try {
-      const res = await fetch("http://10.10.13.83:4000/ai/stats");
+      const res = await fetch("https://ai-capitol-server.onrender.com/ai/stats");
       const data = await res.json();
       if (data.status === 200 && data.data && data.data.stats) {
         setStats(data.data.stats);
@@ -26,7 +26,7 @@ export const DataProvider = ({ children }) => {
   const fetchCategories = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://10.10.13.83:4000/category");
+      const res = await fetch("https://ai-capitol-server.onrender.com/category");
       const data = await res.json();
       if (data.status === 200) {
         setCategories(data.data.categories);
@@ -46,7 +46,7 @@ export const DataProvider = ({ children }) => {
   const createCategory = async (title) => {
     setLoading(true);
     try {
-      const res = await fetch("http://10.10.13.83:4000/category/create", {
+      const res = await fetch("https://ai-capitol-server.onrender.com/category/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title }),
@@ -71,7 +71,7 @@ export const DataProvider = ({ children }) => {
   const fetchAIs = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://10.10.13.83:4000/ai");
+      const res = await fetch("https://ai-capitol-server.onrender.com/ai");
       const data = await res.json();
       if (data.status === 200) {
         setAIs(data.data.ais);
@@ -138,7 +138,7 @@ export const DataProvider = ({ children }) => {
         subscriptionType: aiData.subscriptionType,
         categoryId: Number(aiData.category) || 1,
       };
-      const res = await fetch("http://10.10.13.83:4000/ai/create", {
+      const res = await fetch("https://ai-capitol-server.onrender.com/ai/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

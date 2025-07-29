@@ -62,7 +62,7 @@ export default function AiCategorySection() {
                 src={
                   tool.logo.startsWith("http")
                     ? tool.logo
-                    : `http://10.10.13.83:4000/${tool.logo}`
+                    : `https://ai-capitol-server.onrender.com/${tool.logo}`
                 }
                 alt="AI Logo"
                 className="w-6 h-6 rounded object-cover"
@@ -113,7 +113,7 @@ export default function AiCategorySection() {
                     <Card key={tool.aiId || tool._id} className="border border-gray-200 shadow-sm">
                       <CardContent className="flex items-center gap-3 p-4">
                         {tool.logo ? (
-                          <img src={tool.logo.startsWith('http') ? tool.logo : `http://10.10.13.83:4000/${tool.logo}`} alt="AI Logo" className="w-10 h-10 rounded object-cover" />
+                          <img src={tool.logo.startsWith('http') ? tool.logo : `https://ai-capitol-server.onrender.com/${tool.logo}`} alt="AI Logo" className="w-10 h-10 rounded object-cover" />
                         ) : (
                           <span className="w-10 h-10 rounded bg-gray-200 flex items-center justify-center text-xs text-gray-500">No Image</span>
                         )}

@@ -11,7 +11,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await fetch('http://10.10.13.83:4000/auth/login', {
+      const response = await fetch('https://ai-capitol-server.onrender.com/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }) => {
 
   const signup = async (name, email, password) => {
     try {
-      const response = await fetch('http://10.10.13.83:4000/auth/signup', {
+      const response = await fetch('https://ai-capitol-server.onrender.com/auth/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -65,7 +65,7 @@ export const AuthProvider = ({ children }) => {
   // Request password reset (send OTP)
   const requestResetPassword = async (email) => {
     try {
-      const response = await fetch('http://10.10.13.83:4000/auth/request-reset-password', {
+      const response = await fetch('https://ai-capitol-server.onrender.com/auth/request-reset-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -89,7 +89,7 @@ export const AuthProvider = ({ children }) => {
   // Verify OTP
   const verifyOtp = async (otp, adminId) => {
     try {
-      const response = await fetch('http://10.10.13.83:4000/auth/verify-otp', {
+      const response = await fetch('https://ai-capitol-server.onrender.com/auth/verify-otp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -113,7 +113,7 @@ export const AuthProvider = ({ children }) => {
   // Reset password
   const resetPassword = async (newPassword, adminId) => {
     try {
-      const response = await fetch('http://10.10.13.83:4000/auth/reset-password', {
+      const response = await fetch('https://ai-capitol-server.onrender.com/auth/reset-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

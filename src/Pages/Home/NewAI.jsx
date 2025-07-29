@@ -87,7 +87,7 @@ function NewAI() {
             {/* Logo & Description with Slide Animation */}
             <div className={`flex-shrink-0 w-16 h-16 rounded-md overflow-hidden ${getSlideClass()}`} style={{ minWidth: '4rem' }}>
               <img
-                src={featuredAIs[current].logo ? (featuredAIs[current].logo.startsWith('http') ? featuredAIs[current].logo : `http://10.10.13.83:4000/${featuredAIs[current].logo}`) : 'https://via.placeholder.com/60x60'}
+                src={featuredAIs[current].logo ? (featuredAIs[current].logo.startsWith('http') ? featuredAIs[current].logo : `https://ai-capitol-server.onrender.com/${featuredAIs[current].logo}`) : 'https://via.placeholder.com/60x60'}
                 alt={featuredAIs[current].title + ' Logo'}
                 className="w-16 h-16 object-cover rounded-md"
               />

@@ -167,6 +167,15 @@ function Login() {
                       </Link>
                     </p>
 
+                    <p className="text-gray-500 text-xs">
+                      Want to be admin?{' '}
+                      <Link to="/admin/signup">
+                      <button className="text-purple-400 hover:text-purple-300 transition-colors duration-200">
+                        Signup Here
+                      </button>
+                      </Link>
+                    </p>
+
                   </div>
                 </div>
               </div>
